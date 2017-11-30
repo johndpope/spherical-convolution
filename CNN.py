@@ -52,6 +52,7 @@ class CNNCubedSphereModel(object):
     dropout.
     """
     def __init__(self):
+        tf.reset_default_graph()
         # internal setting
         self.optimizer = tf.train.AdamOptimizer(0.001, beta1=0.9, beta2=0.999, epsilon=1e-08)
         self.bias_initializer = tf.constant_initializer(0.0)
