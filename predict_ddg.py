@@ -33,8 +33,9 @@ for mutation in mutations:
                     pdb_id = mutation[0],
                     mutations = mutation[1],
                     ddg = mutation[2])
-    except MissingResidueError as e:
+    except MissingResidueError, Exception as e:
         sys.stderr.write("SKIPPING DUE TO MissingResidueError: "+ e + "\n")
+        continue
 
     for i, dd in enumerate(pred_ddg):
         ddg_list[0].append(pred_ddg[i])
