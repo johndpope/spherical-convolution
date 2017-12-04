@@ -14,13 +14,14 @@ parser.add_argument("--ddg-csv-filename", dest="ddg_csv_filename",
                     help="CSV file containing ddG data", default="data/ddgs/guerois.csv")
 parser.add_argument("--step", type=int, default=None,
                     help="Which checkpoint file to use (default: %(default)s)")
+parser.add_argument("--checkpoint_path", type=str, default='model/', help="Path to specific model checkpoint path")
 
 options = parser.parse_args()
 
 
 mutations = read_ddg_csv(options.ddg_csv_filename)
 
-model = CNNCubedSphereModel()
+model = CNNCubedSphereModel(checkpoint_path=options.checkpoint_path, step=options.step)
 
 ddg_list = [[],[]]
 for mutation in mutations:

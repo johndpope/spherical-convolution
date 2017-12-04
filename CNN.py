@@ -51,7 +51,7 @@ class CNNCubedSphereModel(object):
     digits 0-20). keep_prob is a scalar placeholder for the probability of
     dropout.
     """
-    def __init__(self):
+    def __init__(self, checkpoint_path='model/', step=None):
         tf.reset_default_graph()
         # internal setting
         self.optimizer = tf.train.AdamOptimizer(0.001, beta1=0.9, beta2=0.999, epsilon=1e-08)
@@ -73,7 +73,8 @@ class CNNCubedSphereModel(object):
 
         # session and saver
         self.session = tf.Session()
-        self._load_model()
+        self.saver = tf.train.Saver()
+        self.restore(checkpoint_path=checkpoint_path, step=step)
 
         # initialize global variables
         tf.global_variables_initializer().run(session=self.session)
@@ -98,28 +99,130 @@ class CNNCubedSphereModel(object):
             b = tf.get_variable("b", shape=[channels_out], initializer=self.bias_initializer, dtype=tf.float32)
             return tf.matmul(input, W) + b
 
-    def _conv_layer(self, input, channels_in, channels_out, name="conv"):
+    def _conv_layer(self, input,
+                    channels_in,
+                    channels_out,
+                    ksize_r=3,
+                    ksize_xi=3,
+                    ksize_eta=3,
+                    stride_r=2,
+                    stride_xi=2,
+                    stride_eta=2,
+                    name="conv"):
         with tf.variable_scope(name) as scope:
-            W = self._weight_variable("weights", [3, 3, 3, channels_in, channels_out])
-            b = tf.get_variable("b", shape=[channels_out], initializer=self.bias_initializer, dtype=tf.float32)
-            convolution = conv_spherical_cubed_sphere(input, W, strides=[1, 1, 1, 1, 1], padding="SAME", name=name)
-            activation = tf.nn.relu(convolution + b)
-            return avg_pool_spherical_cubed_sphere(activation, ksize=[1, 1, 3, 3, 1], strides=[1,1,2,2,1], padding="VALID")
+            W = self._weight_variable("weights", [ksize_r, ksize_xi, ksize_eta, channels_in, channels_out])
+            b = tf.get_variable(
+                "b", shape=[channels_out], initializer=self.bias_initializer, dtype=tf.float32)
+            convolution = conv_spherical_cubed_sphere(input, W, strides=[
+                1, stride_r, stride_xi, stride_eta, 1],
+                padding="VALID",
+                name=name)
+            return tf.nn.relu(convolution + b)
+
+    def _pooling_layer(self,
+                       input,
+                       ksize_r=3,
+                       ksize_xi=3,
+                       ksize_eta=3,
+                       stride_r=2,
+                       stride_xi=2,
+                       stride_eta=2,
+                       name="pooling"):
+        with tf.variable_scope(name) as scope:
+            return avg_pool_spherical_cubed_sphere(input, ksize=[1, ksize_r, ksize_xi, ksize_eta, 1], strides=[1, stride_r, stride_xi, stride_eta, 1], padding="VALID")
 
     def _build_graph(self):
         # Reshape to use within a convolutional neural net.
         x = tf.reshape(self.x, shape=[-1, 6, 24, 38, 38, 2])
-        conv1 = self._conv_layer(x, 2, 16,  name="conv1")
-        conv2 = self._conv_layer(conv1, 16, 32,  name="conv2")
-        conv3 = self._conv_layer(conv2, 32, 64,  name="conv3")
-        conv4 = self._conv_layer(conv3, 64, 128,  name="conv4")
 
-        flattened = tf.reshape(conv4,  [-1, self._reduce_dim(conv4)])
+        ### LAYER 1 ###
+        conv1 = self._conv_layer(x,
+                                    ksize_r=3,
+                                    ksize_xi=5,
+                                    ksize_eta=5,
+                                    channels_out=16,
+                                    channels_in=2,
+                                    stride_r=1,
+                                    stride_xi=2,
+                                    stride_eta=2,
+                                    name="conv1")
 
-        fc1 = self._fc_layer(flattened, self._reduce_dim(conv4), 2048, name="fc1")
+        pool1 = self._pooling_layer(conv1,
+                                    ksize_r=1,
+                                    ksize_xi=3,
+                                    ksize_eta=3,
+                                    stride_r=1,
+                                    stride_xi=2,
+                                    stride_eta=2)
+
+        ### LAYER 2 ####
+        conv2 = self._conv_layer(pool1, ksize_r=3,
+                                    ksize_xi=3,
+                                    ksize_eta=3,
+                                    channels_in=16,
+                                    channels_out=32,
+                                    stride_r=1,
+                                    stride_xi=1,
+                                    stride_eta=1,  name="conv2")
+
+        pool2 = self._pooling_layer(conv2,
+                                    ksize_r=3,
+                                    ksize_xi=3,
+                                    ksize_eta=3,
+                                    stride_r=2,
+                                    stride_xi=2,
+                                    stride_eta=2, name="pool2")
+
+        ### LAYER 3 ####
+        conv3 = self._conv_layer(pool2,
+                                    ksize_r=3,
+                                    ksize_xi=3,
+                                    ksize_eta=3,
+                                    channels_in=32,
+                                    channels_out=64,
+                                    stride_r=1,
+                                    stride_xi=1,
+                                    stride_eta=1,  name="conv3")
+
+        pool3 = self._pooling_layer(conv3,
+                                    ksize_r=1,
+                                    ksize_xi=3,
+                                    ksize_eta=3,
+                                    stride_r=1,
+                                    stride_xi=2,
+                                    stride_eta=2, name="pool3")
+
+        ### LAYER 4 ####
+        conv4 = self._conv_layer(pool3,
+                                    ksize_r=3,
+                                    ksize_xi=3,
+                                    ksize_eta=3,
+                                    channels_in=64,
+                                    channels_out=128,
+                                    stride_r=1,
+                                    stride_xi=1,
+                                    stride_eta=1,  name="conv4")
+
+        pool4 = self._pooling_layer(conv4,
+                                    ksize_r=1,
+                                    ksize_xi=3,
+                                    ksize_eta=3,
+                                    stride_r=1,
+                                    stride_xi=1,
+                                    stride_eta=1, name="pool4")
+
+        print(pool4.get_shape)
+
+        flattened = tf.reshape(pool4,  [-1, self._reduce_dim(pool4)])
+
+        fc1 = self._fc_layer(
+            flattened, self._reduce_dim(pool4), 2048, name="fc1")
         drop_out = tf.nn.dropout(fc1, self.keep_prob)
         fc2 = self._fc_layer(drop_out, 2048, 2048, name="fc2")
-        return self._out_layer(fc2, 2048, self.n_classes)
+
+        out = self._out_layer(fc2, 2048, self.n_classes)
+        print(out)
+        return out
 
     def _batch_factory(self):
         # get proteins feature file names and grid feature file names
@@ -192,11 +295,19 @@ class CNNCubedSphereModel(object):
         with tf.name_scope('probabilities'):
             return tf.nn.softmax(logits=logits)
 
-    def _load_model(self):
-        # Load model
-        saver = tf.train.Saver()
-        ckpt = tf.train.get_checkpoint_state('model/')
-        saver.restore(self.session, ckpt.model_checkpoint_path)
+    def restore(self, checkpoint_path, step=None):
+        ckpt = tf.train.get_checkpoint_state(checkpoint_path)
+
+        if ckpt and ckpt.model_checkpoint_path:
+            if step is None or step == -1:
+                print("Restoring from: last checkpoint")
+                self.saver.restore(self.session, tf.train.latest_checkpoint(checkpoint_path))
+            else:
+                checkpoint_file = checkpoint_path+("/model.ckpt-%d" % step)
+                print("Restoring from:", checkpoint_file)
+                self.saver.restore(self.session, checkpoint_file)
+        else:
+            print("Could not load file")
 
     def infer(self, data):
         return self.session.run([self._probabilities(self.graph)], feed_dict={self.x: data})
