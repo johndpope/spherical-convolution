@@ -312,7 +312,7 @@ class CNNCubedSphereModel(object):
 
     def infer(self, data):
         predictions = self.session.run([self._probabilities(self.graph)], feed_dict={self.x: data, self.keep_prob: 1.0})
-        print("sum:", sum(predictions))
+        print("sum:", sum(predictions[0]))
         return predictions
 
 def main(_):
