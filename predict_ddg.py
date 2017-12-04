@@ -6,6 +6,7 @@ import scipy.stats
 import pickle
 import argparse
 import os
+import pandas as pd
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--markov-model-filename", dest="markov_model_filename",
@@ -24,6 +25,7 @@ mutations = read_ddg_csv(options.ddg_csv_filename)
 model = CNNCubedSphereModel(checkpoint_path=options.checkpoint_path, step=options.step)
 
 ddg_list = [[],[]]
+print(mutations)
 for mutation in mutations:
 
     try:
