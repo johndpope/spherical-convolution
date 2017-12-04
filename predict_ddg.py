@@ -39,7 +39,7 @@ for mutation in mutations:
         continue
 
     except Exception as e:
-        sys.stderr.write(e + "\n")
+        print("AN ERROR!")
         continue
 
     for i, dd in enumerate(pred_ddg):
