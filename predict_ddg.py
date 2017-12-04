@@ -42,7 +42,7 @@ for mutation in mutations:
         ddg_list[0].append(pred_ddg[i])
         ddg_list[1].append(ddg[i])
 
-    print(*ddg_list)
+    # print(*ddg_list)
 
 path = 'data/'
 if not os.path.exists(os.path.dirname(path)):
