@@ -310,10 +310,10 @@ class CNNCubedSphereModel(object):
             print("Could not load file")
 
     def infer(self, data):
-        return self.session.run([self._probabilities(self.graph)], feed_dict={self.x: data})
+        return self.session.run([self._probabilities(self.graph)], feed_dict={self.x: data, self.keep_prob: 1.0})
 
 def main(_):
-    print("hej")
+    print("Main script called.")
 
 if __name__ == '__main__':
     tf.app.run()

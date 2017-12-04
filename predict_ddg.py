@@ -42,7 +42,8 @@ for mutation in mutations:
         ddg_list[0].append(pred_ddg[i])
         ddg_list[1].append(ddg[i])
 
-    # print(*ddg_list)
+    pcorr, pvalue  = scipy.stats.pearsonr(*ddg_list)
+    print(pcorr)
 
 path = 'data/'
 if not os.path.exists(os.path.dirname(path)):
