@@ -34,15 +34,15 @@ for mutation in mutations:
                     pdb_id = mutation[0],
                     mutations = mutation[1],
                     ddg = mutation[2])
-    except Exception:
-        #sys.stderr.write("SKIPPING DUE TO MissingResidueError: "+ e + "\n")
+    except MissingResidueError as e:
+        sys.stderr.write("SKIPPING DUE TO MissingResidueError: "+ e + "\n")
         continue
 
     for i, dd in enumerate(pred_ddg):
         ddg_list[0].append(pred_ddg[i])
         ddg_list[1].append(ddg[i])
 
-    pcorr, pvalue  = scipy.stats.pearsonr(*ddg_list[0])
+    pcorr, pvalue  = scipy.stats.pearsonr(*ddg_list)
     print(pcorr)
 
 path = 'data/'
