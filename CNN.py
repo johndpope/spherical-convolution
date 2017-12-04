@@ -294,7 +294,6 @@ class CNNCubedSphereModel(object):
     def _probabilities(self, logits):
         with tf.name_scope('probabilities'):
             # return tf.nn.softmax(logits=logits)
-            print("sum:", sum(logits))
             return logits
 
     def restore(self, checkpoint_path, step=None):
@@ -312,7 +311,9 @@ class CNNCubedSphereModel(object):
             print("Could not load file")
 
     def infer(self, data):
-        return self.session.run([self._probabilities(self.graph)], feed_dict={self.x: data, self.keep_prob: 1.0})
+        predictions = self.session.run([self._probabilities(self.graph)], feed_dict={self.x: data, self.keep_prob: 1.0})
+        print("sum:", sum(predictions))
+        return predictions
 
 def main(_):
     print("Main script called.")
