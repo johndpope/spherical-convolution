@@ -294,6 +294,7 @@ class CNNCubedSphereModel(object):
     def _probabilities(self, logits):
         with tf.name_scope('probabilities'):
             # return tf.nn.softmax(logits=logits)
+            print("sum:", sum(logits))
             return logits
 
     def restore(self, checkpoint_path, step=None):
