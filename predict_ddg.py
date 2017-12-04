@@ -42,7 +42,7 @@ for mutation in mutations:
         ddg_list[0].append(pred_ddg[i])
         ddg_list[1].append(ddg[i])
 
-    pcorr, pvalue  = scipy.stats.pearsonr(*ddg_list)
+    pcorr, pvalue  = scipy.stats.pearsonr(*ddg_list[0])
     print(pcorr)
 
 path = 'data/'
