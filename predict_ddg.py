@@ -38,6 +38,10 @@ for mutation in mutations:
         sys.stderr.write("SKIPPING DUE TO MissingResidueError: "+ e + "\n")
         continue
 
+    except Exception as e:
+        sys.stderr.write(e + "\n")
+        continue
+
     for i, dd in enumerate(pred_ddg):
         ddg_list[0].append(pred_ddg[i])
         ddg_list[1].append(ddg[i])
