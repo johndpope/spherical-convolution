@@ -293,8 +293,7 @@ class CNNCubedSphereModel(object):
 
     def _probabilities(self, logits):
         with tf.name_scope('probabilities'):
-            return logits/tf.reduce_sum(logits,0)
-            # return tf.nn.softmax(logits=logits)
+            return tf.nn.softmax(logits=logits)
 
     def restore(self, checkpoint_path, step=None):
         ckpt = tf.train.get_checkpoint_state(checkpoint_path)
