@@ -28,14 +28,14 @@ for mutation in mutations:
 
 model = CNNCubedSphereModel(checkpoint_path=options.checkpoint_path, step=options.step)
 
-    values = {
-        'pred_wt': [],
-        'pred_mutant': [],
-        'ddg': [],
-        'wt': [],
-        'res_id': [],
-        'mutant': []
-    }
+values = {
+    'pred_wt': [],
+    'pred_mutant': [],
+    'ddg': [],
+    'wt': [],
+    'res_id': [],
+    'mutant': []
+}
 
 for mutation in mutations:
 
