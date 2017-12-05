@@ -16,6 +16,7 @@ parser.add_argument("--ddg-csv-filename", dest="ddg_csv_filename",
 parser.add_argument("--step", type=int, default=None,
                     help="Which checkpoint file to use (default: %(default)s)")
 parser.add_argument("--checkpoint_path", type=str, default='model/', help="Path to specific model checkpoint path")
+parser.add_argument("--frequencies", type=str, default='data/frequencies/kellogg_freq.p', help="Path to specific frequencies")
 
 options = parser.parse_args()
 
@@ -30,12 +31,18 @@ model = CNNCubedSphereModel(checkpoint_path=options.checkpoint_path, step=option
 
 values = {
     'pred_wt': [],
+    'freq_wt':[],
     'pred_mutant': [],
+    'freq_mutant': [],
     'ddg': [],
     'wt': [],
     'res_id': [],
     'mutant': []
 }
+
+# fetch frequencies for dataset
+with open(options.frequencies, 'rb') as p:
+    frequencies = pickle.load(p)
 
 for mutation in mutations:
 
@@ -45,6 +52,7 @@ for mutation in mutations:
                     low_res_features_input_dir = None,
                     pdb_dir = "data/PDB",
                     values = values,
+                    frequencies: frequencies['frequencies'],
                     pdb_id = mutation[0],
                     mutations = mutation[1],
                     ddg = mutation[2])
