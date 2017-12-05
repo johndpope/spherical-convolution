@@ -22,17 +22,29 @@ options = parser.parse_args()
 
 mutations = read_ddg_csv(options.ddg_csv_filename)
 
+for mutation in mutations:
+    print(mutation[1])
+
+
 model = CNNCubedSphereModel(checkpoint_path=options.checkpoint_path, step=options.step)
 
-ddg_list = [[],[]]
-print(mutations)
+    values = {
+        'pred_wt': [],
+        'pred_mutant': [],
+        'ddg': [],
+        'wt': [],
+        'res_id': [],
+        'mutant': []
+    }
+
 for mutation in mutations:
 
     try:
-        pred_ddg, ddg = predict_ddg(model=model,
+        values = predict_ddg(model=model,
                     high_res_features_input_dir = "data/atomistic_features_cubed_sphere_ddg",
                     low_res_features_input_dir = None,
                     pdb_dir = "data/PDB",
+                    values = values,
                     pdb_id = mutation[0],
                     mutations = mutation[1],
                     ddg = mutation[2])
@@ -44,17 +56,11 @@ for mutation in mutations:
         print("AN ERROR!")
         continue
 
-    for i, dd in enumerate(pred_ddg):
-        ddg_list[0].append(pred_ddg[i])
-        ddg_list[1].append(ddg[i])
-
-    pcorr, pvalue  = scipy.stats.pearsonr(*ddg_list)
-    print(pcorr)
 
 path = 'data/'
 if not os.path.exists(os.path.dirname(path)):
     os.makedirs(os.path.dirname(path))
-with open(os.path.join(path, 'ddg_and_probs.p'), 'wb') as f:
-    pickle.dump(ddg_list, f)
-pcorr, pvalue  = scipy.stats.pearsonr(*ddg_list)
-print("correlation: ", pcorr)
+with open(os.path.join(path, 'pred_values.p'), 'wb') as f:
+    pickle.dump(values, f)
+# pcorr, pvalue  = scipy.stats.pearsonr(*ddg_list)
+# print("correlation: ", pcorr)
