@@ -52,7 +52,7 @@ for mutation in mutations:
                     low_res_features_input_dir = None,
                     pdb_dir = "data/PDB",
                     values = values,
-                    frequencies: frequencies['frequencies'],
+                    frequencies = frequencies['frequencies'],
                     pdb_id = mutation[0],
                     mutations = mutation[1],
                     ddg = mutation[2])
